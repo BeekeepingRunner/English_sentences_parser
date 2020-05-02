@@ -18,7 +18,7 @@
     Sentence:
         Noun Verb
         Noun Verb
-        *********   TODO --> Sentence Conjunction Verb
+        Sentence Conjunction Verb
         Sentence Conjunction Sentence
 
     Conjunction:
@@ -43,17 +43,26 @@ void error(std::string err)
     throw std::runtime_error("err");
 }
 
-bool sentence();
-bool noun();
+// default parameters made to handle special cases
+bool sentence(std::string word = "", bool isWordPassed = false);
+bool noun(std::string word = "", bool isWordPassed = false);
 bool conjunction();
-bool verb();
+bool verb(std::string word = "", bool isWordPassed = false);
 
-bool sentence()
+bool sentence(std::string word, bool isWordPassed)
 {
-    bool isCorrect = noun();
+    bool isCorrect{};
+
+    // path with preceeding conjunction
+    if (isWordPassed)
+        isCorrect = noun(word, true);
+    // default path
+    else
+        isCorrect = noun();
+
     if (!isCorrect)
         return false;
-    
+
     isCorrect = verb();
     if (!isCorrect)
         return false;
@@ -65,24 +74,37 @@ bool sentence()
         return true;
 }
 
-bool noun()
+bool conjunction()
 {
     std::string word{};
     std::cin >> word;
 
-    if (word == "the" || word == "The")
-        std::cin >> word;
+    bool isCorrect{};
 
-    if (word == "birds" || word == "fish" || word == "C++")
+    if (word == "and" || word == "or" || word == "but")
+    {
+        // handles Sentence Conjunction Verb case
+        std::cin >> word;
+        isCorrect = verb(word, true);
+        
+        // handles Sentence Conjunction Sentence case
+        if (!isCorrect)
+            isCorrect = sentence(word, true);
+        
+        if (!isCorrect)
+            return false;
+        else return true;
+    }
+    else if (word == ".")
         return true;
     else
         return false;
 }
 
-bool verb()
+bool verb(std::string word, bool isWordPassed)
 {
-    std::string word{};
-    std::cin >> word;
+    if (!isWordPassed)
+        std::cin >> word;
 
     if (word == "rules" || word == "fly" || word == "swim")
         return true;
@@ -90,19 +112,15 @@ bool verb()
         return false;
 }
 
-bool conjunction()
+bool noun(std::string word, bool isWordPassed)
 {
-    std::string word{};
-    std::cin >> word;
+    if (!isWordPassed)
+        std::cin >> word;
 
-    if (word == "and" || word == "or" || word == "but")
-    {
-        bool isCorrect = sentence();
-        if (!isCorrect)
-            return false;
-        else return true;
-    }
-    else if (word == ".")
+    if (word == "the" || word == "The")
+        std::cin >> word;
+
+    if (word == "birds" || word == "fish" || word == "C++")
         return true;
     else
         return false;
@@ -131,7 +149,12 @@ int main()
 
         // after checking a sentence
         if (isCorrect)
-                std::cout << "\nOK!\n";
+        {
+            std::cout << "\nOK!\n";
+            // deleting garbage from an input stream
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cin.clear();
+        }
         else
         {
             std::cout << "\nnot ok...\n";
